@@ -86,7 +86,7 @@ func Login(c *gin.Context) {
 	secretKey, err := utils.ReadEnv("SECRET_KEY")
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "failed to create token(env error)",
+			"error": "failed to create token",
 		})
 		return
 	}

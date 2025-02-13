@@ -1,0 +1,113 @@
+openapi: "3.0.3"
+info:
+  title: Restaurant Reservation API
+  version: "1.0"
+  description: API for managing restaurants tables reservations (ParsTasmim Task)
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+paths:
+  /signup:
+    post:
+      summary: User Signup
+      description: Registers a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "john_doe3"
+                password:
+                  type: string
+                  example: "securepassword"
+      responses:
+        "201":
+          description: user created
+        "400":
+          description: Invalid JSON body / failed to hash Password / failed to create user
+
+  /login:
+    post:
+      summary: User Login
+      description: Authenticates a user and returns a JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                  example: "john_doe"
+                password:
+                  type: string
+                  example: "securepassword"
+      responses:
+        "200":
+          description: passes token
+        "400":
+          description: Invalid JSON body / user not found / invalid email or password / failed to create token
+
+  /book:
+    post:
+      summary: Book a Table
+      description: Reserves a table with the minimum required seats
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                seats:
+                  type: integer
+                  example: 5
+      responses:
+        "201":
+          description: Reservation successful + infos about Reservation
+        "400":
+          description: Invalid request body
+        "401":
+          description: Unauthorized
+        "404":
+          description: No available table found
+
+  /cancel:
+    post:
+      summary: Cancel Reservation
+      description: Cancels a reservation and frees up the table
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reservation_id:
+                  type: integer
+                  example: 1
+      responses:
+        "200":
+          description: Reservation canceled successfully
+        "400":
+          description: Invalid request body / Reservation already canceled
+        "401":
+          description: Unauthorized
+        "404":
+          description: Reservation not found
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
