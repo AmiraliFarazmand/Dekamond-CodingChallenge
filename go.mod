@@ -1,4 +1,4 @@
-module lotus-task
+module resturant-task
 
 go 1.23.2
 

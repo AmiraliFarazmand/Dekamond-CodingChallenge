@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	"lotus-task/internal/app/db"
-	"lotus-task/internal/app/models"
 	"net/http"
+	"resturant-task/internal/app/db"
+	"resturant-task/internal/app/models"
 
 	"github.com/gin-gonic/gin"
 )

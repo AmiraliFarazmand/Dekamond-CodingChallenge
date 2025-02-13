@@ -3,7 +3,7 @@ package db
 import (
 	"errors"
 	"fmt"
-	"lotus-task/internal/app/utils"
+	"resturant-task/internal/app/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

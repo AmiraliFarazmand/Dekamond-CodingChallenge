@@ -1,11 +1,11 @@
 package controllers
 
 import (
-	"lotus-task/internal/app/db"
-	"lotus-task/internal/app/models"
-	"lotus-task/internal/app/utils"
-	"lotus-task/internal/app/validators"
 	"net/http"
+	"resturant-task/internal/app/db"
+	"resturant-task/internal/app/models"
+	"resturant-task/internal/app/utils"
+	"resturant-task/internal/app/validators"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -109,7 +109,7 @@ func ValidateIsAuthenticated(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error":  "Unauthorized",
+			"error": "Unauthorized",
 		})
 	}
 

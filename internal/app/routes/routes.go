@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"lotus-task/internal/app/controllers"
-	"lotus-task/internal/app/middleware"
+	"resturant-task/internal/app/controllers"
+	"resturant-task/internal/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )

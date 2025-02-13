@@ -1,8 +1,8 @@
 package main
 
 import (
-	"lotus-task/internal/app/db"
-	"lotus-task/internal/app/routes"
+	"resturant-task/internal/app/db"
+	"resturant-task/internal/app/routes"
 )
 
 func main() {

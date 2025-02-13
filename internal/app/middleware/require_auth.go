@@ -3,10 +3,10 @@ package middleware
 import (
 	"fmt"
 	"log"
-	"lotus-task/internal/app/db"
-	"lotus-task/internal/app/models"
-	"lotus-task/internal/app/utils"
 	"net/http"
+	"resturant-task/internal/app/db"
+	"resturant-task/internal/app/models"
+	"resturant-task/internal/app/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"

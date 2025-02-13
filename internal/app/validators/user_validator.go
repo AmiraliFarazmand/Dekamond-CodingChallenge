@@ -3,7 +3,8 @@ package validators
 import (
 	"errors"
 	"fmt"
-	"lotus-task/internal/app/models"
+	"resturant-task/internal/app/models"
+
 	"gorm.io/gorm"
 )
 
