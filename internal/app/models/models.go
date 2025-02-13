@@ -13,9 +13,9 @@ type Table struct {
 }
 
 type Reservation struct {
-	ID     uint `gorm:"primaryKey"`
-	UserID uint `gorm:"not null"`
-	TableID uint `gorm:"not null"`
+	ID            uint    `gorm:"primaryKey"`
+	UserID        uint    `gorm:"not null"`
+	TableID       uint    `gorm:"not null"`
 	SeatsReserved int     `gorm:"not null"`
 	TotalPrice    float64 `gorm:"not null"`
 	IsActive      bool    `gorm:"not null,default:true"`

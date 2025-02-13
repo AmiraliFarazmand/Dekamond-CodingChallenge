@@ -42,9 +42,9 @@ func BookTable(c *gin.Context) {
 	var totalPrice float64
 	if req.Seats == table.SeatsNumber {
 		totalPrice = float64((table.SeatsNumber - 1)) * pricePerSeat
-		} else {
-			totalPrice = float64(table.SeatsNumber) * pricePerSeat
-		}
+	} else {
+		totalPrice = float64(table.SeatsNumber) * pricePerSeat
+	}
 
 	// Create reservation
 	reservation := models.Reservation{
@@ -58,10 +58,57 @@ func BookTable(c *gin.Context) {
 
 	// Return success response
 	c.JSON(http.StatusCreated, gin.H{
-		"message":      "Reservation successful",
-		"reservation_id":  reservation.ID,
-		"total_price":  totalPrice,
-		"table_id":     table.ID,
-		"seats_booked": req.Seats,
+		"message":        "Reservation successful",
+		"reservation_id": reservation.ID,
+		"total_price":    totalPrice,
+		"table_id":       table.ID,
+		"seats_booked":   req.Seats,
 	})
+}
+
+func CancelReservation(c *gin.Context) {
+	// Request payload for canceling a reservation
+	type RequestBody struct {
+		ReservationID uint `json:"reservation_id" binding:"required,min=1"`
+	}
+
+	// Get authenticated user from context
+	user, _ := c.Get("user") // in middleware we already check if user exists!
+	authUser := user.(models.User)
+
+	// Parse request body
+	var req RequestBody
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	// Find the reservation
+	var reservation models.Reservation
+	if err := db.DB.
+		Where("id = ? AND user_id = ?", req.ReservationID, authUser.ID).
+		First(&reservation).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Reservation not found"})
+		return
+	}
+
+	// Check if the reservation is already inactive
+	if !reservation.IsActive {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Reservation already canceled"})
+		return
+	}
+
+	// Mark reservation as inactive
+	reservation.IsActive = false
+	db.DB.Save(&reservation)
+
+	// Free up the table
+	var table models.Table
+	if err := db.DB.First(&table, reservation.TableID).Error; err == nil {
+		table.IsReserved = false
+		db.DB.Save(&table)
+	}
+
+	// Return success response
+	c.JSON(http.StatusOK, gin.H{"message": "Reservation canceled successfully"})
 }

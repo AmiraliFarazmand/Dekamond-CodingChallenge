@@ -24,6 +24,7 @@ func main() {
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.ValidateIsAuthenticated)
 	r.POST("/book", middleware.RequireAuth, controllers.BookTable)
+	r.POST("/cancel", middleware.RequireAuth, controllers.CancelReservation)
 	r.Run() // listen and serve on 0.0.0.0:8080
 
 }
