@@ -1,7 +1,6 @@
 package main
 
 import (
-
 	"lotus-task/internal/app/db"
 	"lotus-task/internal/app/routes"
 )
