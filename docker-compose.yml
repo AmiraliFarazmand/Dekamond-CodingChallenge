@@ -20,8 +20,6 @@ services:
     environment:
       DSN: "host=db user=myuser password=mypassword dbname=restaurant_db port=5432 sslmode=disable TimeZone=Asia/Shanghai"
       SECRET_KEY: "some_secret_key_kalfjdlkfmkmfklsdmfklsdmfkslmdfklsmfdklsmdfh"
-    # env_file:
-    #   - .env
 
 volumes:
   db_data:
