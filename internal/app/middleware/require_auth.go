@@ -16,7 +16,6 @@ import (
 func validateClaims(claims jwt.MapClaims) (models.User, bool) {
 	// check if the token is expired
 	if float64(time.Now().Unix()) > claims["exp"].(float64) {
-		// c.AbortWithStatus(http.StatusUnauthorized)
 		return models.User{}, false
 	}
 	// find expected User
@@ -24,7 +23,6 @@ func validateClaims(claims jwt.MapClaims) (models.User, bool) {
 	db.DB.First(&user, claims["sub"])
 	// check if the user exists
 	if user.ID == 0 {
-		// c.AbortWithStatus(http.StatusUnauthorized)
 		return models.User{}, false
 	}
 	return user, true

@@ -1,0 +1,27 @@
+services:
+  db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: restaurant_db
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+  app:
+    build: .
+    command: ["./main"]
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      DSN: "host=db user=myuser password=mypassword dbname=restaurant_db port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+      SECRET_KEY: "some_secret_key_kalfjdlkfmkmfklsdmfklsdmfkslmdfklsmfdklsmdfh"
+    # env_file:
+    #   - .env
+
+volumes:
+  db_data:
