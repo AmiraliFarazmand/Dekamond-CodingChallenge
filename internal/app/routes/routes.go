@@ -24,6 +24,7 @@ func SetupRouter() *gin.Engine {
 
 	// Auth Routes
 	r.POST("/signup", controllers.Signup)
+	r.POST("/otp", controllers.CreateOTP)
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.ValidateIsAuthenticated)
 

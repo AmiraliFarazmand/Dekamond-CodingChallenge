@@ -5,6 +5,7 @@ import (
 	"Dakomond/internal/app/models"
 	"Dakomond/internal/app/utils"
 	"Dakomond/internal/app/validators"
+	"context"
 	"net/http"
 	"time"
 
@@ -15,8 +16,30 @@ import (
 const tokenExpireTime int = 72 // expire time in hour
 
 type authRequest struct {
-	PhoneNumber string `json:"phone_number"`
+	PhoneNumber string `json:"phone number"`
 	OTP         string
+}
+
+type otpRequest struct {
+	PhoneNumber string `json:"phone number"`
+}
+
+func CreateOTP(c *gin.Context) {
+	var body otpRequest
+	// Validate format of request
+	if c.ShouldBindJSON(&body) != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, "Invalid JSON body")
+		return
+	}
+	
+	if ok:=validators.CheckIfUserExist(db.DB, body.PhoneNumber); !ok{
+		utils.RespondWithError(c, http.StatusNotFound, "User doesn't exist")
+		return
+	}
+
+	otp := utils.RandString(4)
+	db.REDIS.Set(context.Background(), "DAKOMOND:"+body.PhoneNumber, otp, time.Minute*2)
+	c.JSON(http.StatusCreated, gin.H{"OTP": otp})
 }
 
 func createToken(userID string) (string, error) {
@@ -75,12 +98,6 @@ func Login(c *gin.Context) {
 		utils.RespondWithError(c, http.StatusBadRequest, "User not found")
 		return
 	}
-
-	// err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
-	// if err != nil {
-	// 	utils.RespondWithError(c, http.StatusBadRequest, "Invalid username or password")
-	// 	return
-	// }
 
 	tokenString, err := createToken(user.PhoneNumber)
 	if err != nil {

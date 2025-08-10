@@ -16,6 +16,14 @@ func checkUniquenessPhoneNumber(db *gorm.DB, phoneNumber string) error {
 	return nil
 }
 
+func CheckIfUserExist(db *gorm.DB, phoneNumber string) bool {
+	var user models.User
+	if db.Where("phone_number = ?", phoneNumber).First(&user).Error == nil {
+		return true
+	}
+	return false
+}
+
 func validatePhoneNumber(db *gorm.DB, phoneNumber string) error {
 	fmt.Println(phoneNumber)
 	if len(phoneNumber) < 3 || len(phoneNumber) > 64 {
