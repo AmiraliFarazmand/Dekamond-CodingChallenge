@@ -1,46 +1,34 @@
 package validators
 
 import (
+	"Dakomond/internal/app/models"
 	"errors"
 	"fmt"
-	"resturant-task/internal/app/models"
 
 	"gorm.io/gorm"
 )
 
-func checkUniquenessUsername(db *gorm.DB, username string) error {
+func checkUniquenessPhoneNumber(db *gorm.DB, phoneNumber string) error {
 	var user models.User
-	if db.Where("username = ?", username).First(&user).Error == nil {
-		return fmt.Errorf("username %s already exists", username)
+	if db.Where("phone_number = ?", phoneNumber).First(&user).Error == nil {
+		return fmt.Errorf("user with phone number:%s already exists", phoneNumber)
 	}
 	return nil
 }
 
-func validateUsername(username string, db *gorm.DB) error {
-	if len(username) < 3 || len(username) > 64 {
-		return errors.New("username must be between 3 and 64 characters")
+func validatePhoneNumber(db *gorm.DB, phoneNumber string) error {
+	fmt.Println(phoneNumber)
+	if len(phoneNumber) < 3 || len(phoneNumber) > 64 {
+		return errors.New("phone number must be between 3 and 64 characters")
 	}
-	if err := checkUniquenessUsername(db, username); err != nil {
+	if err := checkUniquenessPhoneNumber(db, phoneNumber); err != nil {
 		return err
 	}
 	return nil
 }
 
-func validatePassword(password string) error {
-	if len(password) < 8 {
-		return errors.New("password must be at least 8 characters long")
-	}
-	if len(password) > 64 {
-		return errors.New("password must be less than 64 characters long")
-	}
-	return nil
-}
-
-func ValidateUsernamePassword(username, password string, db *gorm.DB) error {
-	if err := validateUsername(username, db); err != nil {
-		return err
-	}
-	if err := validatePassword(password); err != nil {
+func ValidateUsernameAndOTP(db *gorm.DB, phoneNumber string, otp string) error {
+	if err := validatePhoneNumber(db, phoneNumber); err != nil {
 		return err
 	}
 	return nil

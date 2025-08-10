@@ -1,9 +1,9 @@
 package db
 
 import (
+	"Dakomond/internal/app/utils"
 	"errors"
 	"fmt"
-	"resturant-task/internal/app/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"

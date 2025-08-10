@@ -1,8 +1,8 @@
 package routes
 
 import (
-	"resturant-task/internal/app/controllers"
-	"resturant-task/internal/app/middleware"
+	"Dakomond/internal/app/controllers"
+	"Dakomond/internal/app/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,10 +26,6 @@ func SetupRouter() *gin.Engine {
 	r.POST("/signup", controllers.Signup)
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.ValidateIsAuthenticated)
-
-	// Reservation Routes
-	r.POST("/book", middleware.RequireAuth, controllers.BookTable)
-	r.POST("/cancel", middleware.RequireAuth, controllers.CancelReservation)
 
 	return r
 }

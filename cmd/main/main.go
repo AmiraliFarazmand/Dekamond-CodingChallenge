@@ -1,8 +1,8 @@
 package main
 
 import (
-	"resturant-task/internal/app/db"
-	"resturant-task/internal/app/routes"
+	"Dakomond/internal/app/db"
+	"Dakomond/internal/app/routes"
 )
 
 func main() {

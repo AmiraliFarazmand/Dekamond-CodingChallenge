@@ -1,26 +1,25 @@
 package controllers
 
 import (
+	"Dakomond/internal/app/db"
+	"Dakomond/internal/app/models"
+	"Dakomond/internal/app/utils"
+	"Dakomond/internal/app/validators"
 	"net/http"
-	"resturant-task/internal/app/db"
-	"resturant-task/internal/app/models"
-	"resturant-task/internal/app/utils"
-	"resturant-task/internal/app/validators"
 	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"golang.org/x/crypto/bcrypt"
 )
 
 const tokenExpireTime int = 72 // expire time in hour
 
 type authRequest struct {
-	Username string
-	Password string
+	PhoneNumber string `json:"phone_number"`
+	OTP         string
 }
 
-func createToken(userID uint) (string, error) {
+func createToken(userID string) (string, error) {
 
 	// Create Token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
@@ -47,20 +46,13 @@ func Signup(c *gin.Context) {
 	}
 
 	// Validate Username and Password of request body
-	if err := validators.ValidateUsernamePassword(body.Username, body.Password, db.DB); err != nil { //  validate username and password by our own logic
+	if err := validators.ValidateUsernameAndOTP(db.DB, body.PhoneNumber, ""); err != nil { //  validate username and password by our own logic
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	// Hash the password
-	hash, err := bcrypt.GenerateFromPassword([]byte(body.Password), bcrypt.DefaultCost)
-	if err != nil {
-		utils.RespondWithError(c, http.StatusInternalServerError, "Failed to hash password")
-		return
-	}
-
 	// Insert into DB
-	user := models.User{Username: body.Username, Password: string(hash)}
+	user := models.User{PhoneNumber: body.PhoneNumber}
 	result := db.DB.Create(&user)
 	if result.Error != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, "Failed to create user")
@@ -78,19 +70,19 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	db.DB.First(&user, "username = ?", body.Username)
-	if user.ID == 0 {
+	db.DB.First(&user, "phone_number = ?", body.PhoneNumber)
+	if user.PhoneNumber == "" {
 		utils.RespondWithError(c, http.StatusBadRequest, "User not found")
 		return
 	}
 
-	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
-	if err != nil {
-		utils.RespondWithError(c, http.StatusBadRequest, "Invalid username or password")
-		return
-	}
+	// err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(body.Password))
+	// if err != nil {
+	// 	utils.RespondWithError(c, http.StatusBadRequest, "Invalid username or password")
+	// 	return
+	// }
 
-	tokenString, err := createToken(user.ID)
+	tokenString, err := createToken(user.PhoneNumber)
 	if err != nil {
 		utils.RespondWithError(c, http.StatusInternalServerError, "Failed to create token")
 		return
@@ -111,9 +103,9 @@ func ValidateIsAuthenticated(c *gin.Context) {
 		return
 	}
 
-	username := user.(models.User).Username
+	phoneNumber := user.(models.User).PhoneNumber
 	c.JSON(http.StatusOK, gin.H{
-		"message":  "I am Authenticated",
-		"username": username,
+		"message":      "I am Authenticated",
+		"phone number": phoneNumber,
 	})
 }

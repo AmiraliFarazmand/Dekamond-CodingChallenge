@@ -1,12 +1,12 @@
 package middleware
 
 import (
+	"Dakomond/internal/app/db"
+	"Dakomond/internal/app/models"
+	"Dakomond/internal/app/utils"
 	"fmt"
 	"log"
 	"net/http"
-	"resturant-task/internal/app/db"
-	"resturant-task/internal/app/models"
-	"resturant-task/internal/app/utils"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ func validateClaims(claims jwt.MapClaims) (models.User, bool) {
 	var user models.User
 	db.DB.First(&user, claims["sub"])
 	// check if the user exists
-	if user.ID == 0 {
+	if user.PhoneNumber == "" {
 		return models.User{}, false
 	}
 	return user, true

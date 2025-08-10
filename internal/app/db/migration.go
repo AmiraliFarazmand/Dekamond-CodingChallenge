@@ -1,8 +1,8 @@
 package db
 
 import (
+	"Dakomond/internal/app/models"
 	"log"
-	"resturant-task/internal/app/models"
 
 	"gorm.io/gorm"
 )
@@ -10,8 +10,6 @@ import (
 func runMigrations(db *gorm.DB) {
 	if err := db.AutoMigrate(
 		&models.User{},
-		&models.Table{},
-		&models.Reservation{},
 	); err != nil {
 		log.Fatalf(">ERR db.RunMigraitons(). Failed to run migrations: %v", err)
 	}
