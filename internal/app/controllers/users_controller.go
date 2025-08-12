@@ -5,7 +5,6 @@ import (
 	"Dakomond/internal/app/models"
 	"Dakomond/internal/app/utils"
 	"Dakomond/internal/app/validators"
-	"context"
 	"net/http"
 	"time"
 
@@ -31,15 +30,24 @@ func CreateOTP(c *gin.Context) {
 		utils.RespondWithError(c, http.StatusBadRequest, "Invalid JSON body")
 		return
 	}
-	
-	if ok:=validators.CheckIfUserExist(db.DB, body.PhoneNumber); !ok{
-		utils.RespondWithError(c, http.StatusNotFound, "User doesn't exist")
+
+	// Validate Username and Password of request body
+	if err := validators.ValidatePhoneNumber(db.DB, body.PhoneNumber); err != nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
 	otp := utils.RandString(4)
-	db.REDIS.Set(context.Background(), "DAKOMOND:"+body.PhoneNumber, otp, time.Minute*2)
-	c.JSON(http.StatusCreated, gin.H{"OTP": otp})
+	if ok := db.IsValidToCreateOTP(body.PhoneNumber); !ok {
+		utils.RespondWithError(c, http.StatusTooManyRequests, "Too many attempts")
+		return
+	}
+	if err := db.SetOTP(body.PhoneNumber, otp); err != nil {
+		utils.RespondWithError(c, http.StatusInternalServerError, "Internal server errro")
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"OTP code": otp})
 }
 
 func createToken(userID string) (string, error) {
@@ -68,9 +76,18 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	// Validate Username and Password of request body
-	if err := validators.ValidateUsernameAndOTP(db.DB, body.PhoneNumber, ""); err != nil { //  validate username and password by our own logic
+	if err := validators.ValidatePhoneNumber(db.DB, body.PhoneNumber); err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := validators.CheckUniquenessPhoneNumber(db.DB, body.PhoneNumber); err!=nil {
+		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	// validate if the OTP code was correct
+	if ok := db.CheckOTP(body.PhoneNumber, body.OTP); !ok {
+		utils.RespondWithError(c, http.StatusNotAcceptable, "OTP code wasn't correct or even doesn't exist!")
 		return
 	}
 
@@ -96,6 +113,11 @@ func Login(c *gin.Context) {
 	db.DB.First(&user, "phone_number = ?", body.PhoneNumber)
 	if user.PhoneNumber == "" {
 		utils.RespondWithError(c, http.StatusBadRequest, "User not found")
+		return
+	}
+	// validate if the OTP code was correct
+	if ok := db.CheckOTP(body.PhoneNumber, body.OTP); !ok {
+		utils.RespondWithError(c, http.StatusNotAcceptable, "OTP code wasn't correct or even don't exist!")
 		return
 	}
 
