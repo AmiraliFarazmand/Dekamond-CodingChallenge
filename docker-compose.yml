@@ -1,0 +1,40 @@
+services:
+  db:
+    image: postgres:15
+    container_name: postgres_container_dekamond
+    restart: always
+    environment:
+      POSTGRES_DB: dekamond
+      POSTGRES_USER: PGUser
+      POSTGRES_PASSWORD: PGPassWord
+      TZ: Asia/Shanghai
+    ports:
+      - "5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7
+    container_name: redis_dekamond
+    restart: always
+    ports:
+      - "6380:6379"
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: go_app
+    depends_on:
+      - db
+      - redis
+    environment:
+      # DSN: "host=db user=PGUser password=PGPassWord dbname=dekamond port=5433 sslmode=disable TimeZone=Asia/Shanghai"
+      DSN: "host=db user=PGUser password=PGPassWord dbname=dekamond port=5432 sslmode=disable TimeZone=Asia/Shanghai"
+
+      SECRET_KEY: "some_secret_key_kalfjdlkfmkmfklsdmfklsdmfkslmdfklsmfdklsmdfh"
+      REDIS_ADDR: "redis:6379"
+    ports:
+      - "8080:8080"
+volumes:
+  pgdata:

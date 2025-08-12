@@ -3,6 +3,7 @@ package controllers
 import (
 	"Dakomond/internal/app/db"
 	"Dakomond/internal/app/models"
+	"fmt"
 	"math"
 	"net/http"
 	"strings"
@@ -42,11 +43,13 @@ func UsersPagination(c *gin.Context) {
 	// page data (stable order!)
 	var items []models.User
 	if err := tx.
-		Order("created_at DESC").Order("id DESC").
+		Order("created_at DESC").
+		Order(`"phone_number" DESC`).
 		Limit(q.PerPage).
 		Offset(offset).
 		Find(&items).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "query failed"})
+			fmt.Println("KIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIR",err.Error())
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
