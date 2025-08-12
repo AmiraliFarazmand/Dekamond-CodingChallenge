@@ -28,5 +28,7 @@ func SetupRouter() *gin.Engine {
 	r.POST("/login", controllers.Login)
 	r.GET("/validate", middleware.RequireAuth, controllers.ValidateIsAuthenticated)
 
+	r.GET("/users", middleware.RequireAuth, controllers.UsersPagination)
+
 	return r
 }
