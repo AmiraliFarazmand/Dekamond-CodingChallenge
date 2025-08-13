@@ -1,0 +1,311 @@
+openapi: 3.0.3
+info:
+  title: Dekamond Backend API
+  version: "1.0.0"
+  description: |
+    OTP-based authentication service built with Go, Gin, GORM, PostgreSQL, and Redis.
+    Auth is via JWT set in an HttpOnly cookie named `Authorization`.
+
+servers:
+  - url: http://localhost:8080
+    description: Local
+  - url: http://localhost:8080/api
+    description: Local with /api prefix (if routed)
+
+tags:
+  - name: Auth
+    description: OTP and JWT-based authentication
+  - name: Users
+    description: Users listing (protected)
+
+paths:
+  /otp:
+    post:
+      tags: [Auth]
+      summary: Request OTP
+      description: Generates and stores an OTP for a phone number (short TTL).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OTPRequest"
+            example:
+              phone_number: "09123456789"
+      responses:
+        "200":
+          description: OTP created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MessageResponseWithOptionalOTP"
+              examples:
+                dev:
+                  summary: Development mode (returns OTP)
+                  value:
+                    message: "OTP created successfully"
+                    otp: "1234"
+                prod:
+                  summary: Production mode (no OTP returned)
+                  value:
+                    message: "OTP created successfully"
+        "429":
+          description: Too many requests (rate limited)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /signup:
+    post:
+      tags: [Auth]
+      summary: Sign up (first-time user)
+      description: Verifies OTP and creates a user. Sets JWT cookie `Authorization`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            example:
+              phone_number: "09123456789"
+              otp: "1234"
+      responses:
+        "200":
+          description: Signup successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly JWT cookie named `Authorization`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+              example:
+                message: "Signup successful"
+                token: "<jwt_token>"
+        "400":
+          description: Invalid input / OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: User already exists (if you enforce distinct flows)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Login (existing user)
+      description: Verifies OTP for an existing user and sets JWT cookie `Authorization`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthRequest"
+            example:
+              phone_number: "09123456789"
+              otp: "1234"
+      responses:
+        "200":
+          description: Login successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly JWT cookie named `Authorization`.
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenResponse"
+              example:
+                message: "Login successful"
+                token: "<jwt_token>"
+        "400":
+          description: Invalid input / OTP
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /validate:
+    get:
+      tags: [Auth]
+      summary: Validate auth token
+      description: Validates JWT from `Authorization` cookie and returns current user.
+      security:
+        - cookieAuth: []
+      responses:
+        "200":
+          description: Token valid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidateResponse"
+              example:
+                message: "Token valid"
+                user:
+                  id: 1
+                  phone_number: "09123456789"
+                  created_at: "2025-08-13T14:20:00Z"
+        "401":
+          description: Unauthorized (missing/invalid token)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /users:
+    get:
+      tags: [Users]
+      summary: List users (paginated)
+      description: Returns paginated users. Requires valid JWT in cookie.
+      security:
+        - cookieAuth: []
+      parameters:
+        - in: query
+          name: page
+          schema: { type: integer, minimum: 1, default: 1 }
+          description: Page number (1-based)
+        - in: query
+          name: per_page
+          schema: { type: integer, minimum: 1, maximum: 100, default: 10 }
+          description: Page size
+        - in: query
+          name: search
+          schema: { type: string }
+          description: Optional search by phone number (prefix/contains based on implementation)
+      responses:
+        "200":
+          description: Users page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserListResponse"
+              example:
+                items:
+                  - id: 1
+                    phone_number: "09123456789"
+                    created_at: "2025-08-13T14:20:00Z"
+                total: 1
+                page: 1
+                per_page: 10
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: Authorization
+      description: JWT set as HttpOnly cookie named `Authorization`.
+
+  schemas:
+    OTPRequest:
+      type: object
+      required: [phone_number]
+      properties:
+        phone_number:
+          type: string
+          description: E.164 or local phone format (implementation-specific)
+          example: "09123456789"
+
+    AuthRequest:
+      type: object
+      required: [phone_number, otp]
+      properties:
+        phone_number:
+          type: string
+          example: "09123456789"
+        otp:
+          type: string
+          example: "1234"
+
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Returned for convenience in dev; primary auth is via cookie.
+
+    MessageResponseWithOptionalOTP:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "OTP created successfully"
+        otp:
+          type: string
+          nullable: true
+          description: Present only in development mode.
+
+    ValidateResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Token valid"
+        user:
+          $ref: "#/components/schemas/User"
+
+    UserListResponse:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+        total:
+          type: integer
+          minimum: 0
+          example: 42
+        page:
+          type: integer
+          minimum: 1
+          example: 1
+        per_page:
+          type: integer
+          minimum: 1
+          example: 10
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 1
+        phone_number:
+          type: string
+          example: "09123456789"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-08-13T14:20:00Z"
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "invalid_otp"
+        message:
+          type: string
+          example: "OTP code is invalid or expired"

@@ -14,7 +14,6 @@ A backend service written in **Go** using **Gin**, **GORM**, **PostgreSQL**, and
 - **Go** 1.22+
 - **PostgreSQL** 15+
 - **Redis** 6.2+
-- `make` (optional)
 
 ---
 
