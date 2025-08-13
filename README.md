@@ -2,6 +2,7 @@ ChatGPT said:
 markdown
 Copy
 Edit
+
 # Dekamond – Go Backend (Gin + GORM + Postgres + Redis)
 
 A backend service written in **Go** using **Gin**, **GORM**, **PostgreSQL**, and **Redis**.
@@ -9,6 +10,7 @@ A backend service written in **Go** using **Gin**, **GORM**, **PostgreSQL**, and
 ---
 
 ## 📦 Prerequisites
+
 - **Go** 1.22+
 - **PostgreSQL** 15+
 - **Redis** 6.2+
@@ -18,8 +20,10 @@ A backend service written in **Go** using **Gin**, **GORM**, **PostgreSQL**, and
 
 ## 🚀 Run Locally (Without Docker)
 
-### Have Redis and ProstgreSQL on your local 
+### Have Redis and ProstgreSQL on your local
+
 ### Create a .env file and fill these environment variables(like the example below)
+
 <div class="code-file">.env</div>
 
 ```python
@@ -28,4 +32,13 @@ SECRET_KEY="some_secret_key_kalfjddfsfsdfsflkfmkmfklsdmfklsdmfkslmdfklsmfdklsmdf
 REDIS_ADDR="localhost:6379"
 ```
 
-### run it with $go run cmd/main/main.go 
+### run it with $go run cmd/main/main.go
+
+## 🚀 Run With Docker
+
+### execute these commands:
+
+```
+docker compose build
+docker compose up
+```

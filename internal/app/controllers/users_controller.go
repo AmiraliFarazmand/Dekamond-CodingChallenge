@@ -15,12 +15,12 @@ import (
 const tokenExpireTime int = 72 // expire time in hour
 
 type authRequest struct {
-	PhoneNumber string `json:"phone number"`
+	PhoneNumber string `json:"phone_number"`
 	OTP         string
 }
 
 type otpRequest struct {
-	PhoneNumber string `json:"phone number"`
+	PhoneNumber string `json:"phone_number"`
 }
 
 func CreateOTP(c *gin.Context) {
@@ -80,7 +80,7 @@ func Signup(c *gin.Context) {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := validators.CheckUniquenessPhoneNumber(db.DB, body.PhoneNumber); err!=nil {
+	if err := validators.CheckUniquenessPhoneNumber(db.DB, body.PhoneNumber); err != nil {
 		utils.RespondWithError(c, http.StatusBadRequest, err.Error())
 		return
 	}
